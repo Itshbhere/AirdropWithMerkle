@@ -9,6 +9,7 @@ contract MerkleAirdrop {
 
     error MerkleAirdrop_AlreadyClaimed();
     error MerkleAirdrop_InvalidProof();
+
     event Claim(address account, uint256 amount);
 
     address[] claimers;
@@ -21,18 +22,12 @@ contract MerkleAirdrop {
         i_DeathToken = DeathToken;
     }
 
-    function claim(
-        address account,
-        uint256 amount,
-        bytes32[] calldata merkleProof
-    ) external {
+    function claim(address account, uint256 amount, bytes32[] calldata merkleProof) external {
         if (s_hasClaimed[account]) {
             revert MerkleAirdrop_AlreadyClaimed();
         }
-        bytes32 leaf = keccak256(
-            bytes.concat(keccak256(abi.encode(account, amount)))
-        );
-        if (MerkleProof.verify(merkleProof, i_merkleRoot, leaf)) {
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(account, amount))));
+        if (!MerkleProof.verify(merkleProof, i_merkleRoot, leaf)) {
             revert MerkleAirdrop_InvalidProof();
         }
         s_hasClaimed[account] = true;

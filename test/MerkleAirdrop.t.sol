@@ -16,6 +16,7 @@ contract MerkleAirdropTest is Test {
 
     //Claiming Variables
     uint256 public claimAmount = 25 * 1e18;
+    uint256 public OwnerMint = claimAmount * 4;
 
     // Proofs
     bytes32 Proof1 = 0x0fd7c981d39bece61f7499702bf59b3114a90e66b51ba2c53abdf7b62986c00a;
@@ -27,6 +28,9 @@ contract MerkleAirdropTest is Test {
     function setUp() public {
         t_DeathToken = new DeathToken();
         t_MerkleAirdrop = new MerkleAirdrop(merkleRoot, t_DeathToken);
+        t_DeathToken.mint(t_DeathToken.owner(), OwnerMint);
+        // vm.prank(t_DeathToken.owner());
+        t_DeathToken.transfer(address(t_MerkleAirdrop), OwnerMint);
         (user, userPrvKey) = makeAddrAndKey("user");
     }
 
