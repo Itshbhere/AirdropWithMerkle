@@ -14,6 +14,9 @@ contract MerkleAirdropTest is Test {
     address public user;
     uint256 public userPrvKey;
 
+    //GasPayer
+    address public GasPayer;
+
     //Claiming Variables
     uint256 public claimAmount = 25 * 1e18;
     uint256 public OwnerMint = claimAmount * 4;
@@ -29,18 +32,20 @@ contract MerkleAirdropTest is Test {
         t_DeathToken = new DeathToken();
         t_MerkleAirdrop = new MerkleAirdrop(merkleRoot, t_DeathToken);
         t_DeathToken.mint(t_DeathToken.owner(), OwnerMint);
-        // vm.prank(t_DeathToken.owner());
         t_DeathToken.transfer(address(t_MerkleAirdrop), OwnerMint);
         (user, userPrvKey) = makeAddrAndKey("user");
+        GasPayer = makeAddr("gasPayer");
     }
 
     function testUsers() public {
         console.log(user);
         uint256 StartingBalance = t_DeathToken.balanceOf(user);
         console.log("Starting Banlance is ", StartingBalance);
+        bytes32 digest = t_MerkleAirdrop.getMessage(user, claimAmount);
 
-        vm.prank(user);
-        t_MerkleAirdrop.claim(user, claimAmount, merkleProof);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(userPrvKey, digest);
+        vm.prank(GasPayer);
+        t_MerkleAirdrop.claim(user, claimAmount, merkleProof, v, r, s);
 
         uint256 EndingBalance = t_DeathToken.balanceOf(user);
         console.log("Ending Balnace is ", EndingBalance);
